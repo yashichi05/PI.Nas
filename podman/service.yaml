@@ -1,0 +1,116 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: main
+spec:
+  containers:
+  - name: samba
+    image: docker.io/dperson/samba
+    volumeMounts:
+      - name:  public
+        mountPath:  /mount
+    args:
+    - -p
+    - -s
+    - public;/mount;yes;no;yes
+    ports:
+    - containerPort: 445
+      hostPort: 445
+      protocol: TCP
+    - containerPort: 139
+      hostPort: 139
+      protocol: TCP
+  - name: aria2
+    image: docker.io/p3terx/aria2-pro
+    env:
+    - name: TZ
+      value: Asia/Taipei
+    - name: RPC_SECRET
+      value: aria2
+    volumeMounts:
+    - mountPath: /downloads
+      name: public-downloads
+    - mountPath: /config
+      name: home-pi-aria2-config
+    ports:
+    - containerPort: 6888
+      hostPort: 6888
+      protocol: TCP
+    - containerPort: 6888
+      hostPort: 6888
+      protocol: UDP
+    - containerPort: 6800
+      hostPort: 6800
+      protocol: TCP
+  - name: ariang
+    image: docker.io/p3terx/ariang
+    ports:
+    - containerPort: 6880
+      hostPort: 6880
+      protocol: TCP
+  - name: jd2
+    image: docker.io/jlesage/jdownloader-2
+    env:
+    - name: MYJDOWNLOADER_EMAIL
+      value: yashichi05@gmail.com
+    - name: MYJDOWNLOADER_PASSWORD
+      value: h05h05h05
+    - name: MYJDOWNLOADER_DEVICE_NAME
+      value: nas
+    - name: USER_ID
+      value: "0"
+    - name: GROUP_ID
+      value: "0"
+    - name: UMASK
+      value: "0000"
+    - name: DARK_MODE
+      value: "1"
+    - name: LANG
+      value: zh_tw.UTF-8
+    - name: ENABLE_CJK_FONT
+      value: "1"
+    - name: KEEP_APP_RUNNING
+      value: "1"
+    volumeMounts:
+    - mountPath: /config
+      name: home-pi-JDownloader-config
+    - mountPath: /output
+      name: public-jd-downloads
+    - mountPath: /etc/localtime
+      name: etc-localtime
+      readOnly: true
+    ports:
+    - containerPort: 3129
+      hostPort: 3129
+      protocol: TCP
+    - containerPort: 5900
+      hostPort: 5900
+      protocol: TCP
+    - containerPort: 5800
+      hostPort: 5800
+      protocol: TCP
+  volumes:
+    - name: home-pi-JDownloader-config
+      hostPath:
+        path: /home/pi/JDownloader-config
+        type: Directory
+    - name: public-jd-downloads
+      hostPath:
+        path: /public/jd-downloads
+        type: Directory
+    - name: etc-localtime
+      hostPath:
+        path: /etc/localtime
+        type: File
+    - name: public
+      hostPath:
+        path: /public
+        type: Directory
+    - name: public-downloads
+      hostPath:
+        path: /public/downloads
+        type: Directory
+    - name: home-pi-aria2-config
+      hostPath:
+        path: /home/pi/aria2-config
+        type: Directory
